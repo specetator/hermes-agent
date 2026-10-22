@@ -52,8 +52,13 @@ def _quiet_unregister(selector, sock) -> None:
         pass
 
 
+def _connect_failure(errors: list[OSError], all_errors: bool):
+    """Match socket.create_connection's opt-in aggregate without changing the last-error default."""
+    return ExceptionGroup("create_connection failed", errors) if all_errors else errors[-1]
+
+
 def _happy_eyeballs_create_connection(address: tuple[str, int], timeout: float | None,
-                                      source_address: tuple[str, int] | None = None, socket_options=()):
+                                      source_address: tuple[str, int] | None = None, socket_options=(), *, all_errors=False):
     """RFC 8305-style connect: staggered non-blocking attempts across families.
 
     ``socket.create_connection`` tries addresses serially, so broken-but-
@@ -67,7 +72,7 @@ def _happy_eyeballs_create_connection(address: tuple[str, int], timeout: float |
     selector = selectors.DefaultSelector()
     active: set[socket.socket] = set()
     winner = None
-    last_error: OSError | None = None
+    errors: list[OSError] = []
     deadline = None if timeout is None else time.monotonic() + max(timeout, 0.0)
     next_launch = time.monotonic()
     pending = list(addrinfos)
@@ -99,12 +104,12 @@ def _happy_eyeballs_create_connection(address: tuple[str, int], timeout: float |
         while pending or active:
             now = time.monotonic()
             if deadline is not None and now >= deadline:
-                raise TimeoutError("timed out")
+                raise _connect_failure([*errors, TimeoutError("timed out")], all_errors)
             if pending and now >= next_launch:
                 try:
                     winner = start_attempt(pending.pop(0))
                 except OSError as exc:
-                    last_error = exc
+                    errors.append(exc)
                     if not active:
                         next_launch = now
                     continue
@@ -124,14 +129,14 @@ def _happy_eyeballs_create_connection(address: tuple[str, int], timeout: float |
                     winner = candidate
                     break
                 candidate.close()
-                last_error = OSError(error_code, os.strerror(error_code))
+                errors.append(OSError(error_code, os.strerror(error_code)))
             if winner is not None:
                 break
             if not active and pending:
                 next_launch = time.monotonic()
 
         if winner is None:
-            raise last_error if last_error is not None else OSError(f"Could not connect to {host}:{port}")
+            raise _connect_failure(errors or [OSError(f"Could not connect to {host}:{port}")], all_errors)
         _quiet_unregister(selector, winner)
         active.discard(winner)
         winner.settimeout(timeout)
@@ -210,9 +215,9 @@ def install_happy_eyeballs_socket_connect() -> None:
         # process default from socket.setdefaulttimeout(); the racer re-applies the
         # timeout on the winner, so it must resolve the sentinel the same way.
         effective = socket.getdefaulttimeout() if timeout is socket._GLOBAL_DEFAULT_TIMEOUT else timeout
-        # OSError = every candidate failed (identical to the serial original); anything else is a
-        # racer bug and must surface rather than silently fall back to the serial stall.
-        return _happy_eyeballs_create_connection(address, effective, source_address=source_address)
+        # Failure is the last OSError by default, or an ExceptionGroup when explicitly requested.
+        # Never fall back to the serial walker: that would reintroduce the IPv6 stall.
+        return _happy_eyeballs_create_connection(address, effective, source_address=source_address, all_errors=all_errors)
 
     _socket_racer._hermes_happy_eyeballs = True  # type: ignore[attr-defined]
     socket.create_connection = _socket_racer
