@@ -2,7 +2,23 @@
   <img src="assets/banner.png" alt="Hermes Agent" width="100%">
 </p>
 
-# Hermes Agent ☤
+# Hermes Agent ☤ — TRPG Specialist Fork
+
+**A long-form text RPG / game-master specialization maintained by [specetator](https://github.com/specetator), built on Hermes Agent by Nous Research.**
+
+This fork develops a campaign-aware GM workflow: resume from confirmed state, preserve player agency, track what each character knows, and turn user corrections into reusable continuity and dialogue rules. The public starter includes an optional GM skill and editable campaign templates; the architecture guide documents the separate memory plugin used in the maintainer's local deployment.
+
+| Specialization | What it contributes |
+| --- | --- |
+| Campaign continuity | One canonical save per campaign, branch checkpoints, explicit corrections and source references |
+| Character consistency | Independent NPC motives, knowledge boundaries, relationship stages and distinct voices |
+| Player-led pacing | Separate author notes from actions; keep major choices and time skips with the player |
+| Reviewable quality | State summaries, reusable regression scenarios and evidence-scoped evaluation |
+
+**[Architecture & quick start / 架构与上手](docs/trpg-specialist.md)** · **[GM skill](optional-skills/creative/text-rpg-gm/SKILL.md)** · **[Evaluation scenarios](docs/trpg-specialist-evaluation.md)**
+
+The starter works through Hermes file tools. Automatic checkpoint injection, version checks and Hindsight routing belong to the documented local plugin and are not installed by this starter. Upstream Hermes features and installation instructions follow below.
+
 <p align="center">
   <a href="https://hermes-agent.nousresearch.com/">Hermes Agent</a> | <a href="https://hermes-agent.nousresearch.com/">Hermes Desktop</a>
 </p>

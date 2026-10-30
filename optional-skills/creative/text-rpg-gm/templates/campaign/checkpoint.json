@@ -1,0 +1,22 @@
+{
+  "project_id": "harbor",
+  "branch_id": "main",
+  "revision": 0,
+  "source": "公开虚构模板的初始场景，与 trpg_save.md 一致",
+  "story_time": "港历12年4月3日 18:00",
+  "location": "东岸渡口",
+  "present": ["玩家角色", "林舟"],
+  "absent": ["许岚"],
+  "physical_state": ["信封在玩家手中，封口完整", "渡口的灯刚亮起"],
+  "viewpoint": "玩家角色的可感知视角",
+  "action_owner": "玩家",
+  "knowledge_boundaries": [
+    {"character": "玩家角色", "known": ["收到信件"], "unknown": ["信件内容", "发信者真实身份"], "channel": "亲自接过信"},
+    {"character": "林舟", "known": ["信来自河对岸"], "unknown": ["信件内容", "发信者真实身份"], "channel": "交付任务"},
+    {"character": "许岚", "known": [], "unknown": ["玩家已收到信件"], "channel": "尚无本场信息传递"}
+  ],
+  "last_confirmed_action": "玩家接过未拆封的信",
+  "pending_player_decisions": ["接下来观察、询问或采取自定义行动"],
+  "author_notes": [],
+  "retracted_facts": []
+}

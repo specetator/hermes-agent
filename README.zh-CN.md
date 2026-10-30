@@ -2,7 +2,23 @@
   <img src="assets/banner.png" alt="Hermes Agent" width="100%">
 </p>
 
-# Hermes Agent ☤
+# Hermes Agent ☤ — 长线文字跑团特化版
+
+**由 [specetator](https://github.com/specetator) 维护，基于 Nous Research 的 Hermes Agent，面向中文长线跑团与互动叙事的专业 GM Agent 方案。**
+
+这个 fork 将长期跑团中积累的优化整理为可复用工作流：按作品组织事实，从有效断点续跑，保持角色认知与动机一致，让玩家掌握关键行动，并把纠错转化为后续可执行的规则。
+
+| 特化方向 | 具体能力 |
+| --- | --- |
+| 长线连续性 | 唯一主存档、会话分支检查点、来源记录与错误撤回 |
+| 人物一致性 | 独立动机、知情边界、关系阶段、分角色对白 |
+| 玩家主导 | 区分场外设定与本轮行动，控制跳时与场景推进 |
+| 可审阅质量 | 当前状态摘要、回归案例、按证据评估效果 |
+
+**[架构与上手指南](docs/trpg-specialist.md)** · **[可复用 GM 技能](optional-skills/creative/text-rpg-gm/SKILL.md)** · **[评估案例](docs/trpg-specialist-evaluation.md)**
+
+本次公开的是可通过 Hermes 文件工具使用的技能与战役模板，以及本地记忆插件的设计说明。自动注入、版本冲突检查与 Hindsight 路由属于本地插件实现，安装技能不会自动获得这些机制。以下保留上游 Hermes 的介绍、安装方式与署名。
+
 
 <p align="center">
   <a href="https://hermes-agent.nousresearch.com/docs/"><img src="https://img.shields.io/badge/Docs-hermes--agent.nousresearch.com-FFD700?style=for-the-badge" alt="Documentation"></a>
