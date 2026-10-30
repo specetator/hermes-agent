@@ -2,7 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import type { DelegationRouting } from '@/api/delegation'
+import type { DelegationModelMap, DelegationRouting } from '@/api/delegation'
 import type { HermesApiRequest } from '@/global'
 import { queryClient } from '@/lib/query-client'
 
@@ -40,6 +40,13 @@ beforeEach(() => {
     api: async (request: HermesApiRequest) => {
       if (request.path === '/api/delegation/routing') {
         return structuredClone(routing)
+      }
+
+      if (request.path === '/api/delegation/backends/model_map') {
+        writes.push(request)
+        routing = { ...routing, model_map: request.body as DelegationModelMap }
+
+        return { ok: true, model_map: routing.model_map }
       }
 
       if (request.path === '/api/delegation/backend') {
@@ -80,6 +87,30 @@ function mount() {
 const radio = (name: RegExp) => screen.getByRole('radio', { name }) as HTMLButtonElement
 
 describe('Subagents routing', () => {
+  it('saving an unrelated route edit preserves inherited routing in the request', async () => {
+    routing = {
+      ...routing,
+      configured: 'model_map',
+      backends: backend(['default', 'model_map']),
+      model_map: {
+        options: [
+          { name: 'fast', description: 'Quick', provider: 'openrouter', model: 'fast-model' },
+          { name: 'deep', description: 'Thorough', provider: 'openrouter', model: 'deep-model' }
+        ],
+        default: null
+      }
+    }
+    mount()
+    fireEvent.click((await screen.findByText('deep')).closest('button')!)
+    fireEvent.change(screen.getByLabelText('When to use it'), { target: { value: 'Updated description' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save route' }))
+
+    await waitFor(() => expect(writes).toHaveLength(1))
+    expect(writes[0].path).toBe('/api/delegation/backends/model_map')
+    expect((writes[0].body as DelegationModelMap).default).toBeNull()
+    expect((writes[0].body as DelegationModelMap).options[1].description).toBe('Updated description')
+  })
+
   it('shows plugin modes with an install hint, never as choosable, until their backend registers', async () => {
     mount()
     await screen.findByText('Model routes and Profile routes come from the Advanced Delegation plugin.')

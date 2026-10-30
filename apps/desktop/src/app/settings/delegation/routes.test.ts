@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { DelegationModelMap } from '@/hermes'
 
-import { removeRoute, routeFromDraft, toggleProfileRoute, upsertRoute, validateRouteDraft } from './routes'
+import { removeRoute, routeFromDraft, setDefaultRoute, toggleProfileRoute, upsertRoute, validateRouteDraft } from './routes'
 
 const route = (name: string, extra: Record<string, unknown> = {}) => ({
   name,
@@ -12,7 +12,17 @@ const route = (name: string, extra: Record<string, unknown> = {}) => ({
   ...extra
 })
 
-describe('route editing keeps a default while routes exist', () => {
+describe('route editing preserves the selected default policy', () => {
+  it('preserves inherited routing while editing an existing default-less map', () => {
+    const map: DelegationModelMap = { options: [route('fast'), route('deep')], default: null }
+
+    expect(upsertRoute(map, 'deep', route('deep', { description: 'Updated' })).default).toBeNull()
+    expect(upsertRoute(map, 'deep', route('renamed')).default).toBeNull()
+    expect(upsertRoute(map, null, route('third')).default).toBeNull()
+    expect(removeRoute(map, 'fast').default).toBeNull()
+    expect(setDefaultRoute(map, 'deep').default).toBe('deep')
+  })
+
   it('names a default on the first route, follows a rename, and moves it off a deleted default', () => {
     let map: DelegationModelMap = { options: [], default: null }
 

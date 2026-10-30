@@ -83,11 +83,15 @@ export function routeFromDraft(draft: ModelRouteDraft, previous?: DelegationMode
   return next as DelegationModelRoute
 }
 
-/** A default route always exists while routes do, so the subagent model below is plainly unused. */
-function withDefault(options: DelegationModelRoute[], preferred: null | string): DelegationModelMap {
+/** Preserve an existing inherit-main choice; otherwise keep the editor's first-route default. */
+function withDefault(
+  options: DelegationModelRoute[],
+  preferred: null | string,
+  inheritMain = false
+): DelegationModelMap {
   const names = options.map(option => option.name)
 
-  return { options, default: preferred && names.includes(preferred) ? preferred : (names[0] ?? null) }
+  return { options, default: preferred && names.includes(preferred) ? preferred : inheritMain ? null : (names[0] ?? null) }
 }
 
 /** Insert (`original` null) or replace the route called `original`; a rename carries the default along. */
@@ -96,13 +100,14 @@ export function upsertRoute(map: DelegationModelMap, original: null | string, ro
   const options = index < 0 ? [...map.options, route] : map.options.map((o, i) => (i === index ? route : o))
   const preferred = original !== null && map.default === original ? route.name : map.default
 
-  return withDefault(options, preferred)
+  return withDefault(options, preferred, map.options.length > 0 && map.default === null)
 }
 
 export const removeRoute = (map: DelegationModelMap, name: string) =>
   withDefault(
     map.options.filter(option => option.name !== name),
-    map.default === name ? null : map.default
+    map.default === name ? null : map.default,
+    map.options.length > 0 && map.default === null
   )
 
 export const setDefaultRoute = (map: DelegationModelMap, name: string) => withDefault(map.options, name)
